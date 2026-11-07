@@ -49,7 +49,7 @@ These are non-obvious because the project uses newer tooling than most examples 
 
 - **AGP 9.x with built-in Kotlin.** There is no `org.jetbrains.kotlin.android` plugin: Android modules apply only the AGP plugin (plus `org.jetbrains.kotlin.plugin.compose`). Don't add the kotlin-android plugin or a `kotlinOptions` block. Only the pure-JVM modules apply `org.jetbrains.kotlin.jvm`.
 - **The release minification DSL is `optimization { enable = true }`**, not `isMinifyEnabled`/`proguardFiles`. R8 keep rules live in `app/src/main/keepRules/*.keep`, and AGP picks up every file in that directory. There is no `proguard-rules.pro`.
-- **`compileSdk { version = release(37) }`**: new-style DSL. targetSdk 37, minSdk 26, Java/bytecode target 11.
+- **`compileSdk { version = release(37) }`**: new-style DSL. targetSdk 37, minSdk 26, Java/bytecode target 17 (set in `build-logic` `AndroidConfig.kt`).
 - **Dependencies go through the version catalog** at `gradle/libs.versions.toml`. Compose artifacts are versioned by the Compose BOM, so leave them without explicit versions. `settings.gradle.kts` uses `FAIL_ON_PROJECT_REPOS`, so declare repositories only there, not in module build files.
 - **The Gradle configuration cache is enabled** (`gradle.properties`). Build logic must stay configuration-cache compatible.
 - **The Gradle daemon runs on a JDK 25 toolchain** auto-provisioned through foojay (`gradle/gradle-daemon-jvm.properties`). Gradle wrapper is 9.6.0.
