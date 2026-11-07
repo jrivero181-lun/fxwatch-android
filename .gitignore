@@ -1,15 +1,25 @@
+# Build outputs (any module, including build-logic)
+build/
+.kotlin/
+.externalNativeBuild
+.cxx
+/captures
+
+# Gradle caches
+.gradle/
+
+# Machine-specific
+local.properties
+
+# IDE
 *.iml
-.gradle
-/local.properties
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+
+# OS
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+Thumbs.db
