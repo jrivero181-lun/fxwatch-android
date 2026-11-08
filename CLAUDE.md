@@ -34,7 +34,24 @@ Decisions to keep:
 - `MainDispatcherRule`: JUnit 4 rule (`@get:Rule`) for any test that touches `viewModelScope`. It defaults to `UnconfinedTestDispatcher`; pass a `StandardTestDispatcher` to control execution.
 - The fakes have their own tests (`FakeRatesRepositoryTest`), because other tests rely on them honoring the repository contracts. Update those tests when a fake changes.
 
-Pending for the data layer: a helper that maps exceptions to `DomainError` and rethrows `CancellationException`. It wasn't added yet because nothing uses it.
+### Next: dependency injection and the data layer
+
+Not implemented yet. Follow this order. Each step must leave `./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug` green.
+
+1. **Version catalog.** Add Hilt (2.59.2 or later), KSP (2.3.1 or later, the first release that supports AGP 9's built-in Kotlin), `javax.inject`, the AndroidX Hilt Compose artifact (`hiltViewModel()`) and `hilt-android-testing`. Also add the Hilt and KSP Gradle plugins as `implementation` dependencies of `build-logic`. Check the latest compatible versions before pinning them.
+2. **build-logic.** Add a `HiltConventionPlugin` (`fxwatch.android.hilt`) that applies `com.google.devtools.ksp` and `com.google.dagger.hilt.android`, and adds `hilt-android` plus `ksp(hilt-compiler)`. `fxwatch.android.feature` and `fxwatch.android.application` apply it. `fxwatch.jvm.library` does not.
+3. **`:core:domain`.** Add `javax.inject` and mark every use case `@Inject constructor`, so a new use case never needs a provider. `GetRateHistoryUseCase` keeps its `Clock` parameter; Dagger ignores Kotlin default arguments, so `Clock` must be bound (step 4).
+4. **New module `:core:data`** (Android library + `fxwatch.android.hilt`, depends on `:core:domain`). It contains:
+   - `remote/`: API service and DTOs (`rates`, `currencies`, rate history), plus mappers to domain models. The DTOs never leave this module.
+   - `local/`: favorites storage (DataStore).
+   - `repository/`: `RatesRepositoryImpl` and `FavoritesRepositoryImpl`, `@Singleton` and `@Inject constructor`.
+   - `error/`: the helper that maps exceptions to `DomainError.Data` (`IOException` → `Network`, HTTP codes → `Server`, unknown currency → `UnsupportedCurrency`). It must rethrow `CancellationException`.
+   - `di/`: `RepositoryModule` (`@Binds` interface → impl), `NetworkModule`, `StorageModule`, `DispatchersModule` (`@IoDispatcher`, `@DefaultDispatcher`) and `ClockModule` (`Clock.systemDefaultZone()`).
+   - Tests: mappers and the exception helper with JUnit; repository implementations with fake data sources and an injected test dispatcher.
+5. **Features.** ViewModels are `@HiltViewModel` + `@Inject constructor(useCases…)`. `:feature:rates` (MVVM + UDF) and `:feature:converter` (MVI) depend only on `:core:domain`, never on `:core:data`. Their tests build the ViewModel by hand with fakes and `MainDispatcherRule`.
+6. **`:app`.** Add an `Application` class with `@HiltAndroidApp` (declared in the manifest) and `@AndroidEntryPoint` on `MainActivity`. `:app` depends on `:core:data` and the features: it's the only module that sees both, so it's where the graph is assembled. Instrumented tests replace `RepositoryModule` with `@TestInstallIn` modules that bind the fakes.
+
+Dependency direction after this: `:app` → `:feature:*` → `:core:domain` ← `:core:data` ← `:app`. Domain depends on nothing, and features never see the data layer.
 
 ### build-logic
 
@@ -92,6 +109,15 @@ These are non-obvious because the project uses newer tooling than most examples 
 - `:core:domain` must not depend on Android.
 - `:feature:rates` uses MVVM + UDF.
 - `:feature:converter` uses MVI.
+
+**Dependency injection (Hilt)**
+- Use Hilt with **KSP**, never kapt: kapt is incompatible with AGP 9's built-in Kotlin. Hilt is applied only through the `fxwatch.android.hilt` convention plugin, never directly in a module.
+- **Constructor injection only.** Field injection (`@Inject lateinit var`) is allowed only in Android entry points (`@AndroidEntryPoint`).
+- `:core:domain` stays framework-free: its only DI dependency is `javax.inject` (`@Inject constructor`, `@Qualifier`). No Hilt or Dagger annotations (`@Module`, `@InstallIn`, `@HiltViewModel`) in pure JVM modules.
+- Domain interfaces are bound in the module that implements them (`:core:data`), with `@Binds` in an `@InstallIn(SingletonComponent::class)` module under its `di/` package. Features never bind domain interfaces.
+- Scopes: repositories and data sources are `@Singleton`. Use cases are unscoped (stateless, cheap to create). ViewModels are `@HiltViewModel` and are obtained with `hiltViewModel()` in the screen's top-level composable, never passed further down.
+- Anything that's nondeterministic or environment-specific is injected, never created inline: `Clock`, dispatchers (`@IoDispatcher`, `@DefaultDispatcher` qualifiers), network clients, DataStore.
+- Unit tests don't use Hilt: build the class by hand with fakes from `:core:testing`. Hilt testing (`@HiltAndroidTest`, `@TestInstallIn` to replace data modules with fakes) is only for instrumented and UI tests.
 
 **Testing**
 - Every new domain class or ViewModel must include tests (JUnit, MockK, Turbine, `runTest`).
