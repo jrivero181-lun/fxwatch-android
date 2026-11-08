@@ -1,6 +1,10 @@
 package com.dev.fxwatch.core.domain.usecase
 
 import com.dev.fxwatch.core.domain.model.ExchangeRate
+import com.dev.fxwatch.core.domain.result.DomainError
+import com.dev.fxwatch.core.domain.result.DomainResult
+import com.dev.fxwatch.core.domain.result.asFailure
+import com.dev.fxwatch.core.domain.result.asSuccess
 import java.math.BigDecimal
 import java.math.MathContext
 
@@ -14,20 +18,25 @@ import java.math.MathContext
 class ConvertAmountUseCase {
 
     /**
-     * @param rates rates that all share the same base.
-     * @return the converted amount, or `null` when [rates] lacks a usable rate for [from] or [to].
+     * @param rates rates that all share the same base; mixing bases is a programming error and throws.
+     * @return the converted amount, [DomainError.NegativeAmount] for a negative [amount], or
+     * [DomainError.RateUnavailable] when [rates] lacks a usable rate for [from] or [to].
      */
-    operator fun invoke(amount: BigDecimal, from: String, to: String, rates: List<ExchangeRate>): BigDecimal? {
-        require(amount.signum() >= 0) { "Amount must not be negative: $amount" }
-        if (from == to) return amount
-
+    operator fun invoke(
+        amount: BigDecimal,
+        from: String,
+        to: String,
+        rates: List<ExchangeRate>
+    ): DomainResult<BigDecimal> {
         val rateByCode = rateByCode(rates)
         val fromRate = rateByCode[from]?.takeIf { it.signum() != 0 }
         val toRate = rateByCode[to]
-        return if (fromRate != null && toRate != null) {
-            amount.multiply(toRate).divide(fromRate, MathContext.DECIMAL64)
-        } else {
-            null
+        return when {
+            amount.signum() < 0 -> DomainError.NegativeAmount.asFailure()
+            from == to -> amount.asSuccess()
+            fromRate == null -> DomainError.RateUnavailable(from).asFailure()
+            toRate == null -> DomainError.RateUnavailable(to).asFailure()
+            else -> amount.multiply(toRate).divide(fromRate, MathContext.DECIMAL64).asSuccess()
         }
     }
 

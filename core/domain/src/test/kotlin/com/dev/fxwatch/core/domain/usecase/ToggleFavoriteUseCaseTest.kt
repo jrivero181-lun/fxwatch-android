@@ -1,11 +1,11 @@
 package com.dev.fxwatch.core.domain.usecase
 
 import app.cash.turbine.test
+import com.dev.fxwatch.core.domain.result.DomainError
+import com.dev.fxwatch.core.domain.result.DomainResult
 import com.dev.fxwatch.core.testing.repository.FakeFavoritesRepository
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ToggleFavoriteUseCaseTest {
@@ -18,7 +18,7 @@ class ToggleFavoriteUseCaseTest {
         repository.observeFavorites().test {
             assertEquals(setOf("GBP"), awaitItem())
 
-            assertTrue(useCase("USD"))
+            assertEquals(DomainResult.Success(true), useCase("USD"))
 
             assertEquals(setOf("GBP", "USD"), awaitItem())
         }
@@ -32,7 +32,7 @@ class ToggleFavoriteUseCaseTest {
         repository.observeFavorites().test {
             assertEquals(setOf("GBP", "USD"), awaitItem())
 
-            assertFalse(useCase("USD"))
+            assertEquals(DomainResult.Success(false), useCase("USD"))
 
             assertEquals(setOf("GBP"), awaitItem())
         }
@@ -43,11 +43,26 @@ class ToggleFavoriteUseCaseTest {
         val repository = FakeFavoritesRepository()
         val useCase = ToggleFavoriteUseCase(repository)
 
-        assertTrue(useCase("JPY"))
-        assertFalse(useCase("JPY"))
+        assertEquals(DomainResult.Success(true), useCase("JPY"))
+        assertEquals(DomainResult.Success(false), useCase("JPY"))
 
         repository.observeFavorites().test {
             assertEquals(emptySet<String>(), awaitItem())
+        }
+    }
+
+    @Test
+    fun `propagates storage failures and leaves favorites untouched`() = runTest {
+        val repository = FakeFavoritesRepository(setOf("GBP"))
+        repository.error = DomainError.Storage
+        val useCase = ToggleFavoriteUseCase(repository)
+
+        repository.observeFavorites().test {
+            assertEquals(setOf("GBP"), awaitItem())
+
+            assertEquals(DomainResult.Failure(DomainError.Storage), useCase("USD"))
+
+            expectNoEvents()
         }
     }
 }

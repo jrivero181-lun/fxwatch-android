@@ -3,8 +3,10 @@ package com.dev.fxwatch.core.domain.usecase
 import com.dev.fxwatch.core.domain.model.HistoryPeriod
 import com.dev.fxwatch.core.domain.model.RateHistory
 import com.dev.fxwatch.core.domain.model.RatePoint
+import com.dev.fxwatch.core.domain.result.DomainError
+import com.dev.fxwatch.core.domain.result.DomainResult
+import com.dev.fxwatch.core.domain.result.getOrNull
 import com.dev.fxwatch.core.testing.repository.FakeRatesRepository
-import java.io.IOException
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
@@ -42,29 +44,30 @@ class GetRateHistoryUseCaseTest {
         )
         repository.history = RateHistory("EUR", "AED", points)
 
-        val result = useCase("EUR", "AED", HistoryPeriod.WEEK)
+        val history = useCase("EUR", "AED", HistoryPeriod.WEEK).getOrNull()
 
-        assertEquals(listOf(today.minusDays(2), today.minusDays(1), today), result.points.map { it.date })
-        assertEquals(point(today, "4.30"), result.latest)
+        assertEquals(listOf(today.minusDays(2), today.minusDays(1), today), history?.points?.map { it.date })
+        assertEquals(point(today, "4.30"), history?.latest)
     }
 
     @Test
     fun `empty history has no latest point`() = runTest {
         val result = useCase("EUR", "AED", HistoryPeriod.YEAR)
 
-        assertEquals(emptyList<RatePoint>(), result.points)
-        assertNull(result.latest)
+        assertEquals(DomainResult.Success(RateHistory("EUR", "AED", emptyList())), result)
+        assertNull(result.getOrNull()?.latest)
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `rejects identical base and quote`() = runTest {
-        useCase("EUR", "EUR", HistoryPeriod.WEEK)
+    @Test
+    fun `fails with SameCurrency without hitting the repository`() = runTest {
+        assertEquals(DomainResult.Failure(DomainError.SameCurrency("EUR")), useCase("EUR", "EUR", HistoryPeriod.WEEK))
+        assertNull(repository.lastHistoryRequest)
     }
 
-    @Test(expected = IOException::class)
-    fun `propagates repository errors`() = runTest {
-        repository.error = IOException("offline")
+    @Test
+    fun `propagates repository failures`() = runTest {
+        repository.error = DomainError.Server(code = 503)
 
-        useCase("EUR", "AED", HistoryPeriod.WEEK)
+        assertEquals(DomainResult.Failure(DomainError.Server(503)), useCase("EUR", "AED", HistoryPeriod.WEEK))
     }
 }

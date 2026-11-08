@@ -1,13 +1,13 @@
 package com.dev.fxwatch.core.domain.usecase
 
 import com.dev.fxwatch.core.domain.model.ExchangeRate
+import com.dev.fxwatch.core.domain.result.DomainError
+import com.dev.fxwatch.core.domain.result.DomainResult
 import com.dev.fxwatch.core.testing.repository.FakeRatesRepository
-import java.io.IOException
 import java.math.BigDecimal
 import java.time.LocalDate
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class GetLatestRatesUseCaseTest {
@@ -20,32 +20,31 @@ class GetLatestRatesUseCaseTest {
 
     @Test
     fun `returns rates sorted by quote`() = runTest {
-        repository.latestRates =
-            mapOf("EUR" to listOf(rate("USD", "1.08"), rate("AAVE", "0.0085519"), rate("GBP", "0.86")))
+        val usd = rate("USD", "1.08")
+        val aave = rate("AAVE", "0.0085519")
+        val gbp = rate("GBP", "0.86")
+        repository.latestRates = mapOf("EUR" to listOf(usd, aave, gbp))
 
-        val result = useCase("EUR")
-
-        assertEquals(listOf("AAVE", "GBP", "USD"), result.map { it.quote })
+        assertEquals(DomainResult.Success(listOf(aave, gbp, usd)), useCase("EUR"))
     }
 
     @Test
     fun `drops the rate of the base against itself`() = runTest {
-        repository.latestRates = mapOf("EUR" to listOf(rate("EUR", "1"), rate("USD", "1.08")))
+        val usd = rate("USD", "1.08")
+        repository.latestRates = mapOf("EUR" to listOf(rate("EUR", "1"), usd))
 
-        val result = useCase("EUR")
-
-        assertEquals(listOf("USD"), result.map { it.quote })
+        assertEquals(DomainResult.Success(listOf(usd)), useCase("EUR"))
     }
 
     @Test
-    fun `returns empty list when the base has no rates`() = runTest {
-        assertTrue(useCase("XYZ").isEmpty())
+    fun `returns an empty list when the base has no rates`() = runTest {
+        assertEquals(DomainResult.Success(emptyList<ExchangeRate>()), useCase("XYZ"))
     }
 
-    @Test(expected = IOException::class)
-    fun `propagates repository errors`() = runTest {
-        repository.error = IOException("offline")
+    @Test
+    fun `propagates repository failures`() = runTest {
+        repository.error = DomainError.Network
 
-        useCase("EUR")
+        assertEquals(DomainResult.Failure(DomainError.Network), useCase("EUR"))
     }
 }
