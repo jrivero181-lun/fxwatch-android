@@ -3,5 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.coroutines.core)
+
+    testImplementation(projects.core.testing)
 }

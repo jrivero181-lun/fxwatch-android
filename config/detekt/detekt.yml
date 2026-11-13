@@ -17,6 +17,8 @@ complexity:
 style:
   MagicNumber:
     ignorePropertyDeclaration: true
+    # Enum constructor args (e.g. HistoryPeriod.WEEK(7)) are already named by the entry.
+    ignoreEnums: true
     ignoreAnnotated: ['Composable', 'Preview']
   UnusedPrivateMember:
     ignoreAnnotated: ['Preview']
