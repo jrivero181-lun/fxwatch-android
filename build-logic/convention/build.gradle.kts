@@ -46,6 +46,10 @@ gradlePlugin {
             id = libs.plugins.fxwatch.android.feature.get().pluginId
             implementationClass = "AndroidFeatureConventionPlugin"
         }
+        register("androidHilt") {
+            id = libs.plugins.fxwatch.android.hilt.get().pluginId
+            implementationClass = "HiltConventionPlugin"
+        }
         register("jvmLibrary") {
             id = libs.plugins.fxwatch.jvm.library.get().pluginId
             implementationClass = "JvmLibraryConventionPlugin"
