@@ -10,6 +10,7 @@ android {
         applicationId = "com.dev.fxwatch"
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "com.dev.fxwatch.HiltTestRunner"
     }
 
     buildTypes {
