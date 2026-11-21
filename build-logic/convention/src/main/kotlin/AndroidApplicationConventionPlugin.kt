@@ -12,6 +12,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         with(target) {
             pluginManager.apply(libs.pluginId("android-application"))
             pluginManager.apply(libs.pluginId("fxwatch-quality"))
+            pluginManager.apply(libs.pluginId("fxwatch-android-hilt"))
 
             extensions.configure<ApplicationExtension> {
                 compileSdk {
