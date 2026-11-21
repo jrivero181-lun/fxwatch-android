@@ -10,12 +10,14 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
         with(target) {
             pluginManager.apply(libs.pluginId("fxwatch-android-library"))
             pluginManager.apply(libs.pluginId("fxwatch-android-compose"))
+            pluginManager.apply(libs.pluginId("fxwatch-android-hilt"))
 
             with(dependencies) {
                 add("implementation", project(":core:domain"))
                 add("implementation", libs.lib("kotlinx-coroutines-core"))
                 add("implementation", libs.lib("androidx-lifecycle-runtime-compose"))
                 add("implementation", libs.lib("androidx-lifecycle-viewmodel-compose"))
+                add("implementation", libs.lib("androidx-hilt-lifecycle-viewmodel-compose"))
                 add("testImplementation", project(":core:testing"))
             }
         }

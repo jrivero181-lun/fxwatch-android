@@ -27,6 +27,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "FxWatch"
 include(":app")
+include(":core:data")
 include(":core:domain")
 include(":core:testing")
 include(":feature:rates")

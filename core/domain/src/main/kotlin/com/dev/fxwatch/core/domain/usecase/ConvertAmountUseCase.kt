@@ -7,6 +7,7 @@ import com.dev.fxwatch.core.domain.result.asFailure
 import com.dev.fxwatch.core.domain.result.asSuccess
 import java.math.BigDecimal
 import java.math.MathContext
+import javax.inject.Inject
 
 /**
  * Converts [amount] from one currency to another using a set of rates that share a common base.
@@ -15,7 +16,7 @@ import java.math.MathContext
  * (`amount * rate(to) / rate(from)`), with the base itself counting as rate 1.
  * It's synchronous and pure so the converter can recompute on every keystroke without I/O.
  */
-class ConvertAmountUseCase {
+class ConvertAmountUseCase @Inject constructor() {
 
     /**
      * @param rates rates that all share the same base; mixing bases is a programming error and throws.

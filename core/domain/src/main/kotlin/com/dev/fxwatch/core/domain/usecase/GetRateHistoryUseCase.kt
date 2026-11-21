@@ -9,15 +9,16 @@ import com.dev.fxwatch.core.domain.result.asFailure
 import com.dev.fxwatch.core.domain.result.map
 import java.time.Clock
 import java.time.LocalDate
+import javax.inject.Inject
 
 /**
  * History of the [base]/[quote] rate over a [HistoryPeriod] ending today, sorted by ascending date.
  *
  * [clock] defines "today" and is injectable so tests are deterministic.
  */
-class GetRateHistoryUseCase(
+class GetRateHistoryUseCase @Inject constructor(
     private val ratesRepository: RatesRepository,
-    private val clock: Clock = Clock.systemDefaultZone()
+    private val clock: Clock
 ) {
     /** @return the history, [DomainError.SameCurrency] if [base] equals [quote], or the data failure. */
     suspend operator fun invoke(base: String, quote: String, period: HistoryPeriod): DomainResult<RateHistory> {

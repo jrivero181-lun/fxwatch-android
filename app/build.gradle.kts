@@ -10,6 +10,7 @@ android {
         applicationId = "com.dev.fxwatch"
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "com.dev.fxwatch.HiltTestRunner"
     }
 
     buildTypes {
@@ -23,6 +24,8 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.data)
+    implementation(projects.core.domain)
     implementation(projects.feature.rates)
     implementation(projects.feature.converter)
 

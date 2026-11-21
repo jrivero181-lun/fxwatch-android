@@ -24,6 +24,8 @@ dependencies {
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.compose.gradlePlugin)
     implementation(libs.ktlint.gradlePlugin)
+    implementation(libs.hilt.gradlePlugin)
+    implementation(libs.ksp.gradlePlugin)
 }
 
 gradlePlugin {
@@ -43,6 +45,10 @@ gradlePlugin {
         register("androidFeature") {
             id = libs.plugins.fxwatch.android.feature.get().pluginId
             implementationClass = "AndroidFeatureConventionPlugin"
+        }
+        register("androidHilt") {
+            id = libs.plugins.fxwatch.android.hilt.get().pluginId
+            implementationClass = "HiltConventionPlugin"
         }
         register("jvmLibrary") {
             id = libs.plugins.fxwatch.jvm.library.get().pluginId
