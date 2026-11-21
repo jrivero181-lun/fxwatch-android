@@ -1,6 +1,6 @@
 # SPEC 01 — Base de inyección de dependencias con Hilt
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** Ninguna
 > **Date:** 2026-11-21
 > **Objective:** Integrar Hilt mediante una convención de Gradle para que una feature nueva solo tenga que aplicar su plugin y declarar `@HiltViewModel`.
@@ -92,19 +92,19 @@ Un caso de uso nuevo solo necesita `@Inject constructor`.
 
 ## Criterios de aceptación
 
-- [ ] `./gradlew ktlintCheck detekt testDebugUnitTest` termina con éxito.
-- [ ] `./gradlew assembleDebug assembleRelease` termina con éxito.
-- [ ] Un segundo `./gradlew assembleDebug` reutiliza el configuration cache.
-- [ ] `./gradlew connectedDebugAndroidTest` pasa en un emulador o dispositivo, incluido `DiGraphSmokeTest`.
-- [ ] La app debug abre y muestra el `Greeting` sin crash.
-- [ ] Ningún archivo usa `kapt`.
-- [ ] Ningún `build.gradle.kts` de módulo declara directamente plugins o librerías de Hilt.
-- [ ] `:core:domain` no contiene imports de `dagger` ni de `android`.
-- [ ] `:core:domain` declara `javax.inject` como su única dependencia de DI.
-- [ ] Los cuatro casos de uso tienen `@Inject constructor`.
-- [ ] `GetRateHistoryUseCase` no tiene un valor por defecto para `Clock`.
-- [ ] `:feature:rates` y `:feature:converter` no dependen de `:core:data`.
-- [ ] `:core:data` contiene únicamente `ClockModule` y `DispatchersModule` como código de producción.
+- [x] `./gradlew ktlintCheck detekt testDebugUnitTest` termina con éxito.
+- [x] `./gradlew assembleDebug assembleRelease` termina con éxito.
+- [x] Un segundo `./gradlew assembleDebug` reutiliza el configuration cache.
+- [x] `./gradlew connectedDebugAndroidTest` pasa en un emulador o dispositivo, incluido `DiGraphSmokeTest`.
+- [x] La app debug abre y muestra el `Greeting` sin crash.
+- [x] Ningún archivo usa `kapt`.
+- [x] Ningún `build.gradle.kts` de módulo declara directamente plugins o librerías de Hilt.
+- [x] `:core:domain` no contiene imports de `dagger` ni de `android`.
+- [x] `:core:domain` declara `javax.inject` como su única dependencia de DI.
+- [x] Los cuatro casos de uso tienen `@Inject constructor`.
+- [x] `GetRateHistoryUseCase` no tiene un valor por defecto para `Clock`.
+- [x] `:feature:rates` y `:feature:converter` no dependen de `:core:data`.
+- [x] `:core:data` contiene únicamente `ClockModule` y `DispatchersModule` como código de producción.
 
 ## Decisiones
 
