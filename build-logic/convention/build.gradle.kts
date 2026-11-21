@@ -24,6 +24,8 @@ dependencies {
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.compose.gradlePlugin)
     implementation(libs.ktlint.gradlePlugin)
+    implementation(libs.hilt.gradlePlugin)
+    implementation(libs.ksp.gradlePlugin)
 }
 
 gradlePlugin {
